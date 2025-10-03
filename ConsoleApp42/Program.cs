@@ -1,8 +1,9 @@
-﻿using System.Numerics;
-using static System.Net.Mime.MediaTypeNames;
+﻿// Для отслеживания действий сделан логгер log.txt 
+
 using static Profession;
 Battle battle = new();
 battle.StartGame();
+
 
 static class AbilitiesLibrary
 {
@@ -10,20 +11,35 @@ static class AbilitiesLibrary
     {
         if (attacker.CurrentTurn == 1 && attacker is Hero hero)
         {
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Warrior1!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} = 1 Условие выполнено. Дополнительный урон в размере урона от оружия {hero.Weapon}, {hero.Weapon?.Damage}");
             return hero.Weapon?.Damage ?? 0;
         }
-        else return 0;
+
+        else
+        {
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Warrior1!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} = 1 Условие не выполнено.");
+            return 0;
+        }
+
     });
     public static readonly DeffenceAbbility Warrior2 = new("Щит", (attacker, defender) =>
     {
         if (defender.Strength > attacker.Strength)
         {
-            return -3;
+            int howMuch = 3;
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Warrior2!.Name} Cила {defender}: {defender.Strength} > Силы {attacker.Strength} : {attacker}. Условие выполнено, получаемый урон снижен на {howMuch} ");
+            return howMuch;
         }
-        else return 0;
+        else
+        {
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Warrior2!.Name} Cила {defender}: {defender.Strength} > Силы {attacker.Strength} : {attacker}. Условие не выполнено ");
+            return 0;
+        }
+
     });
     public static readonly PassiveAbbility Warrior3 = new("Увеличение силы", (attacker, defender) =>
     {
+        FileLogger.Log($@"[ОСОБЕННОСТИ] {Warrior3!.Name} - Пассивное умение активно {PassiveAbbility.BonusType.Strength} +1");
         return 1;
     }, PassiveAbbility.BonusType.Strength);
 
@@ -31,39 +47,73 @@ static class AbilitiesLibrary
     {
         if (attacker.Dexterity > defender.Dexterity)
         {
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Rogue1!.Name} Ловкость {attacker}: {attacker.Dexterity} > Ловкости {defender.Dexterity} : {defender}. Условие выполнено. Урон будет увеличен на 1");
             return 1;
         }
-        else return 0;
+        else
+        {
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Rogue1!.Name} Ловкость {attacker}: {attacker.Dexterity} > Ловкости {defender.Dexterity} : {defender}. Условие не выполнено");
+            return 0;
+        }
 
     });
     public static readonly PassiveAbbility Rogue2 = new("Увеличение ловкости", (attacker, defender) =>
     {
+        FileLogger.Log($@"[ОСОБЕННОСТИ] {Rogue2!.Name} - Пассивное умение активно {PassiveAbbility.BonusType.Dexterity} +1");
         return 1;
     }, PassiveAbbility.BonusType.Dexterity);
     public static readonly AttackAbbility Rogue3 = new("Яд", (attacker, defender) =>
     {
         if (attacker.CurrentTurn > 1)
         {
+
             int poisonDamage = attacker.CurrentTurn - 1;
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Rogue3!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} > 1. Условие выполнено. Дополнительный урон в размере {poisonDamage}");
             return poisonDamage;
         }
-        else return 0;
+        else
+        {
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Rogue3!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} > 1. Условие не выполнено.");
+            return 0;
+        }
     });
 
     public static readonly AttackAbbility Barbarian1 = new("Ярость", (attacker, defender) =>
     {
         if (attacker.CurrentTurn < 4)
         {
-            return 2;
+            int extra = 2;
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Barbarian1!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} < 4. Условие выполнено. Дополнительный урон в размере {extra}");
+            return extra;
         }
-        else return -1;
+        else
+        {
+            int sanction = -1;
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Barbarian1!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} < 4. Условие не выполнено. Урон будет уменьшен на {sanction}");
+            return sanction;
+        }
+
+
     });
     public static readonly DeffenceAbbility Barbarian2 = new("Каменная кожа", (attacker, defender) =>
     {
-        return defender.Stamina;
+        if (defender.Strength > attacker.Strength)
+        {
+            int extra = defender.Stamina;
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Barbarian2!.Name} Сила {defender}: {defender.Strength} > Силы {attacker.Strength} : {attacker}. Условие выполнено. Урон будет уменьшен на {extra}");
+            return extra;
+        }
+        else
+        {
+            int extra = defender.Stamina;
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Barbarian2!.Name} Сила {defender}: {defender.Strength} > Силы {attacker.Strength} : {attacker}. Условие  не выполнено.");
+            return 0;
+        }
+
     });
     public static readonly PassiveAbbility Barbarian3 = new("Увеличение выносливости", (attacker, defender) =>
     {
+        FileLogger.Log($@"[ОСОБЕННОСТИ] {Barbarian3!.Name} - Пассивное умение активно {PassiveAbbility.BonusType.Stamina} +1");
         return 1;
     }, PassiveAbbility.BonusType.Stamina);
 
@@ -73,9 +123,12 @@ static class AbilitiesLibrary
         {
             if (hero.Weapon?.TypeDamage == TypeDamage.bludgeoningDamage)
             {
-                return -hero.Attack();
+                int extra = hero.Attack();
+                FileLogger.Log($@"[ОСОБЕННОСТИ] {Skeleton1!.Name} {attacker} С оружием, наносящий {TypeDamage.bludgeoningDamage} урон. Урон будет увеличен на Величину атаки {attacker}: {hero.Attack()}");
+                return -extra;
             }
         }
+        FileLogger.Log($@"[ОСОБЕННОСТИ] {Skeleton1!.Name} {attacker} С неправильным оружием. Условие не выполнено ");
         return 0;
     });
     public static readonly DeffenceAbbility Slime1 = new("Насмешка над острием", (attacker, defender) =>
@@ -84,9 +137,12 @@ static class AbilitiesLibrary
         {
             if (hero.Weapon?.TypeDamage == TypeDamage.slashingDamage)
             {
-                return -hero.Weapon.Damage;
+                int extra = hero.Weapon.Damage;
+                FileLogger.Log($@"[ОСОБЕННОСТИ] {Slime1!.Name} {attacker} С оружием, наносящий {TypeDamage.slashingDamage} урон. Урон от оружия не прошел.");
+                return extra;
             }
         }
+        FileLogger.Log($@"[ОСОБЕННОСТИ] {Slime1!.Name} {attacker} С правильным оружием.Слайм получает полноценный урон. Условие не выполнено ");
         return 0;
     });
     public static readonly AttackAbbility Ghost1 = Rogue1;
@@ -95,9 +151,15 @@ static class AbilitiesLibrary
     {
         if (attacker.CurrentTurn % 3 == 0)
         {
-            return 3;
+            int extra = 3;
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Dragon1!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} % 3 == 0 Условие выполнено. Дополнительный урон в размере {extra}");
+            return extra;
         }
-        else return 0;
+        else
+        {
+            FileLogger.Log($@"[ОСОБЕННОСТИ] {Dragon1!.Name} Текущий ход {attacker}: {attacker.CurrentTurn} % 3 == 0 Условие не выполнено.");
+            return 0;
+        }
     });
 } // Cписок умений
 
@@ -123,8 +185,11 @@ class Hero : IPlayer
     public int Health { get; protected set; }
     public int CurrentHealth { get; protected set; }
     public int Strength { get; protected set; }
+    private int BaseStrength;
     public int Dexterity { get; protected set; }
+    private int BaseDexterity;
     public int Stamina { get; protected set; }
+    private int BaseStamina;
     public int HeroLevel { get; protected set; } = 0;
 
     private readonly List<Abbility> CurrentAbbility = [];
@@ -139,9 +204,21 @@ class Hero : IPlayer
         OnChangeAfterPassiveAbbility += GameUI.ChangeAfterPassiveAbbility;
 
         Random rnd = new();
-        Strength = rnd.Next(1, 4);
-        Dexterity = rnd.Next(1, 4);
-        Stamina = rnd.Next(1, 4);
+        BaseStrength = rnd.Next(1, 4);
+        BaseDexterity = rnd.Next(1, 4);
+        BaseStamina = rnd.Next(1, 4);
+
+        Strength = BaseStrength;
+        Dexterity = BaseDexterity;
+        Stamina = BaseStamina;
+
+
+        FileLogger.Log(
+        $@"У нового персонажа атрибуты равны случайному числу от 1 до 3 включительно.
+Сила = {BaseStrength};
+Ловкость = {BaseDexterity};
+Выносливость = {BaseStamina};");
+
     }// Создание базовых атрибутов
 
 
@@ -152,6 +229,12 @@ class Hero : IPlayer
         foreach (var profession in professions)
         {
             CurrentAbbility.AddRange(profession.GetAbbilitities());
+        }
+
+        FileLogger.Log("Список способностей героя:");
+        foreach (var ability in CurrentAbbility)
+        {
+            FileLogger.Log($" - {ability.Name}");
         }
     } // Обновление списка способностей героя на основе профессий
     internal void UpdateStats()
@@ -164,12 +247,15 @@ class Hero : IPlayer
 
     internal void LevelUp(Profession chosenProfession)
     {
-
+        FileLogger.Log($@"Пользователь выбрал профессию для прокачки: {chosenProfession}");
         if (HeroLevel == 0)
         {
             Weapon = chosenProfession is Warrior ? new Sword() :
                       chosenProfession is Barbarian ? new Club() :
                       chosenProfession is Rogue ? new Dagger() : null;
+            FileLogger.Log(
+$@"При выборе первой профессии герою вручается оружие:
+Для {chosenProfession} начальным оружием является {Weapon} ");
         }
 
         var existingProfession = professions.FirstOrDefault(p =>
@@ -179,11 +265,13 @@ class Hero : IPlayer
 
         if (existingProfession == null)
         {
+            FileLogger.Log("Указанной профессией герой ранее не владел.");
             chosenProfession.LevelUp();
             professions.Add(chosenProfession);
         }
         else
         {
+            FileLogger.Log($"Указанная профессия уже была.");
             existingProfession.LevelUp();
         }
 
@@ -203,7 +291,6 @@ class Hero : IPlayer
             {
                 HeroLevel = value;
             }
-
         }
     }   //  Ограничение уровня героя до 3
 
@@ -259,15 +346,15 @@ class Hero : IPlayer
 
     public int Attack()
     {
-
+        OnSizeDamage?.Invoke(this);
         if (Weapon != null)
         {
-            OnSizeDamage?.Invoke(this);
+
             return Strength + Weapon.Damage;
         }
         else
         {
-            OnSizeDamage?.Invoke(this);
+
             return Strength;
         }
     } // Атака
@@ -283,6 +370,9 @@ class Hero : IPlayer
     } // Получение способностей
     private void ApplyPassiveAbbilities()
     {
+        Strength = BaseStrength;
+        Dexterity = BaseDexterity;
+        Stamina = BaseStamina;
         foreach (var abbility in CurrentAbbility.OfType<PassiveAbbility>())
         {
             int bonus = abbility.Effect(this, this);
@@ -322,6 +412,7 @@ abstract class Profession // Профессии
     internal void LevelUp()
     {
         level++;
+        FileLogger.Log($"Повышается уровень профессии {this} до {level}");
     } // Уровень профессии
     public int ShowLevel()
     {
@@ -331,7 +422,7 @@ abstract class Profession // Профессии
 
     public abstract class Abbility
     {
-        string Name { get; }
+        public string Name { get; }
         public override string ToString() => Name;
         public Func<IPlayer, IPlayer, int> Effect { get; }
         public Abbility(string name, Func<IPlayer, IPlayer, int> effect)
@@ -506,12 +597,18 @@ class Battle
             _hero.ShowFullStats();
             _enemy = EnemyFactory.CreateRandomEnemy();
             SetFirstTurn();
+            FileLogger.Log(
+            $@"Начинается {CounterWin + 1} Сражение
+Герой против {_enemy}
+Ловкость героя: {_hero.Dexterity} vs {_enemy.Dexterity} Ловость противника
+Первый ход за {AttackPlayer}");
             Turns();
             CounterWin++;
         }
 
         if (CounterWin == 5)
         {
+            FileLogger.Log("Игра пройдена");
             OnGameEnd?.Invoke();
         }
     } // Запуск игры
@@ -541,11 +638,18 @@ class Battle
             OnHit?.Invoke(AttackPlayer, Defender, Evasion);
             if (Evasion <= Defender.Dexterity)
             {
+                FileLogger.Log(
+                $@"[БОЙ] Ловкость {AttackPlayer}: {AttackPlayer.Dexterity} Ловкость {Defender}: {Defender.Dexterity} 
+[БОЙ] Выпадает Произвольное число в диапазоне от 1 до {AttackPlayer.Dexterity + Defender.Dexterity}
+[БОЙ] Произвольное число {Evasion} > {Defender.Dexterity}
+[БОЙ] {AttackPlayer} промахнулся.
+[БОЙ] Смена хода");
                 AttackPlayer.EndTurn();
                 SwapPlayers();
             } // Уклонение от атаки
             else
             {
+
                 SetActiveAbbilities();
                 int bonusDamage = UseActiveAbbilities();
                 int damage = AttackPlayer.Attack() + bonusDamage;
@@ -553,6 +657,12 @@ class Battle
                 OnDamaged?.Invoke(Defender, damage);
                 if (Defender.CurrentHealth > 0)
                 {
+                    FileLogger.Log(
+                    $@"[БОЙ] Ловкость {AttackPlayer}: {AttackPlayer.Dexterity} Ловкость {Defender}: {Defender.Dexterity} 
+[БОЙ] Выпадает Произвольное число в диапазоне от 1 до {AttackPlayer.Dexterity + Defender.Dexterity}
+[БОЙ] Произвольное число {Evasion} >= {Defender.Dexterity}
+[БОЙ] {AttackPlayer} наносит Урон от оружия.
+[БОЙ] Смена хода");
                     AttackPlayer.EndTurn();
                     SwapPlayers();
                 }
@@ -567,25 +677,45 @@ class Battle
                         }
                         if (_hero.HeroLevel < 3)
                         {
+                            FileLogger.Log(
+                            $@"
+[БОЙ] Ловкость {AttackPlayer}: {AttackPlayer.Dexterity} Ловкость {Defender}: {Defender.Dexterity}
+[БОЙ] Выпадает Произвольное число в диапазоне от 1 до {AttackPlayer.Dexterity + Defender.Dexterity}
+[БОЙ] Произвольное число {Evasion} >= {Defender.Dexterity}
+[БОЙ] {AttackPlayer} наносит {damage}.
+Сражение выйграл {AttackPlayer}
+Уровень {AttackPlayer}: {_hero.HeroLevel}. 
+Срабатывает код на повышение уровня");
                             _hero.LevelUp(OnChangeProfession?.Invoke(_hero)!);
                         }
 
                         else
                         {
-
+                            FileLogger.Log($"Уровень героя: {_hero.HeroLevel}. " +
+                            $"Срабатывает код на обновление характеристик перед следующим боем");
                             _hero.UpdateStats();
                         }
-
+                        FileLogger.Log(
+$@"
+[БОЙ] Ловкость {AttackPlayer}: {AttackPlayer.Dexterity} Ловкость {Defender}: {Defender.Dexterity}
+[БОЙ] Выпадает Произвольное число в диапазоне от 1 до {AttackPlayer.Dexterity + Defender.Dexterity}
+[БОЙ] Произвольное число {Evasion} >= {Defender.Dexterity}
+[БОЙ] {AttackPlayer} наносит {damage}.
+Сражение выйграл {AttackPlayer}");
                         _hero.HealAfterBattle();
+
                     }
                     else
                     {
                         restart = OnHeroDefeated?.Invoke() ?? false;
                         if (restart)
                         {
+                            FileLogger.Log($"Герой погиб, пользователь перезапускает игру");
                             _hero = new Hero();
+                            CounterWin = 0;
                             StartGame();
                         }
+                        FileLogger.Log($"Герой погиб, пользователь вышел из игры");
                     }
                     break;
                 }
@@ -609,20 +739,24 @@ class Battle
             {
                 if (ability is AttackAbbility)
                 {
-                    bonusDamage += ability.Effect(AttackPlayer!, Defender!);
-                    if (ability.Effect(AttackPlayer!, Defender!) != 0)
-                        OnChangeAfterAttackAbbility?.Invoke(ability, ability.Effect(AttackPlayer!, Defender!), AttackPlayer);
+                    int extra = ability.Effect(AttackPlayer!, Defender!);
+                    bonusDamage += extra;
+                    if (extra != 0)
+                        OnChangeAfterAttackAbbility?.Invoke(ability, extra, AttackPlayer);
                 }
             } // Активация способностей атакующего
             foreach (var ability in _abbilitiesDefender)
             {
                 if (ability is DeffenceAbbility)
                 {
-                    bonusDamage += ability.Effect(AttackPlayer!, Defender!);
-                    if (ability.Effect(AttackPlayer!, Defender!) != 0)
-                        OnChangeAfterDeffenceAbbility?.Invoke(ability, ability.Effect(AttackPlayer!, Defender!), Defender!);
+                    int extra = ability.Effect(AttackPlayer!, Defender!);
+                    bonusDamage -= extra;
+                    if (extra != 0)
+                        OnChangeAfterDeffenceAbbility?.Invoke(ability, extra, Defender!);
+
                 }
             } // Активация способностей защищающегося
+
             return bonusDamage;
         }
     } // Бой
@@ -957,7 +1091,10 @@ class GameUI
     {
         WriteLineSeparator();
         Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"У {player} сработала способность! {abb}. Урон будет уменьшен на {damage} единиц!");
+        if (damage <= 0)
+            Console.WriteLine($"У {player} сработала способность! {abb}. Урон будет увеличен на {-damage} единиц!");
+        else
+            Console.WriteLine($"У {player} сработала способность! {abb}. Урон будет уменьшен на {damage} единиц!");
     }
 
     public static void ChangeAfterPassiveAbbility(PassiveAbbility abb, int score, IPlayer player)
@@ -966,6 +1103,22 @@ class GameUI
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine($"У {player} активна пассивка! {abb}. {abb.Target} увеличена на {score} единиц!");
     }
+
+
 }
 
 
+static class FileLogger
+{
+    private static readonly string logFile = "log.txt";
+
+    static FileLogger()
+    {
+        File.WriteAllText(logFile, $"=== Game Log {DateTime.Now} ===\n");
+    }
+
+    public static void Log(string message)
+    {
+        File.AppendAllText(logFile, $"{message}\n");
+    }
+}
